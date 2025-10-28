@@ -1,0 +1,6 @@
+.git
+.github
+Dockerfile
+tracker.db
+*.md
+.DS_Store
