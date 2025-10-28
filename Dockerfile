@@ -1,10 +1,16 @@
-FROM golang:1.24
-
+FROM golang:1.24 AS build
 WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
 COPY . .
 
-RUN go mod tidy
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -trimpath -ldflags "-s -w" -o /final-app .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /final-app main.go
-
-CMD ["/final-app"]
+FROM gcr.io/distroless/static:nonroot
+WORKDIR /
+COPY --from=build /final-app /final-app
+USER nonroot:nonroot
+ENTRYPOINT ["/final-app"]
